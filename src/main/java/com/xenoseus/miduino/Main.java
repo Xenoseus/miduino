@@ -1,6 +1,7 @@
 package com.xenoseus.miduino;
 
 import com.xenoseus.miduino.notes.Note;
+import com.xenoseus.miduino.notes.TimeLine;
 import org.apache.log4j.Logger;
 
 import javax.sound.midi.*;
@@ -17,6 +18,7 @@ public class Main {
         Sequence sequence = MidiSystem.getSequence(new File("test.mid"));
 
         Note[] notes = new Note[300];
+        TimeLine timeLine = new TimeLine();
         int trackNumber = 0;
         for (Track track :  sequence.getTracks()) {
             if (trackNumber == 0) {
@@ -50,8 +52,9 @@ public class Main {
                                 log.warn("notes[key] is null, but note ends, key = " + key);
                             } else {
                                 notes[key].setDuration(midiEvent.getTick() - notes[key].getTick());
-                                log.info("note ends: " + notes[key]);
-                                //TODO: in future, assign this note to some class with timeline
+                                //log.info("note ends: " + notes[key]);
+
+                                timeLine.addNote(notes[key]);
                                 notes[key] = null;
                             }
                         }
@@ -69,5 +72,7 @@ public class Main {
                 }
             }
         }
+        timeLine.sortLine();
+        timeLine.print();
     }
 }

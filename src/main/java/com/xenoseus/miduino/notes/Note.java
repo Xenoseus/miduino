@@ -1,5 +1,8 @@
 package com.xenoseus.miduino.notes;
 
+/**
+ * Самая обыкновенная нота
+ */
 public class Note {
     private static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     private int note;
@@ -60,7 +63,30 @@ public class Note {
 
     @Override
     public String toString() {
-        return String.format("[Note note=%s, octave=%d, tick=%d, duration=%d]", NOTES[note], octave, tick, duration);
+        return String.format("[Note note=%s, octave=%d, tick=%d, duration=%d]",
+                this.getNoteName(),
+                this.octave,
+                this.tick,
+                this.duration);
+    }
+
+    /**
+     * Получить ноту в форматированном виде
+     */
+    public String getNoteName() {
+        return NOTES[this.note];
+    }
+
+    /**
+     * Получить главную информацию о ноте<br>
+     * Формат: <code>note (tick, duration)</code>
+     */
+    public String getNoteMainInfo() {
+        return String.format("%s (%d, %d)",
+                this.getNoteName(),
+                this.tick,
+                this.duration
+        );
     }
 
     /**
