@@ -4,7 +4,7 @@ package com.xenoseus.miduino.notes;
  * Самая обыкновенная нота
  */
 public class Note {
-	private static final String[] NOTES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+	private static final String[] NOTES = {"C", "CS", "D", "DS", "E", "F", "FS", "G", "GS", "A", "AS", "B"};
 	private int note;
 	private int octave;
 	private int key;

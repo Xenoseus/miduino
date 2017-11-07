@@ -52,6 +52,13 @@ public class TimeLine {
 	}
 
 	/**
+	 * Получить список нот таймлайна
+	 */
+	public ArrayList<Note> getNotes() {
+		return this.notes;
+	}
+
+	/**
 	 * Вывести временную линию в красивом виде
 	 */
 	public void print() {
@@ -63,6 +70,37 @@ public class TimeLine {
 			}
 			log.info(stringBuilder.toString());
 			stringBuilder.setLength(0);
+		}
+	}
+
+	/**
+	 * Преобразовать списки временных этапов с нотами отдельных
+	 * каналов в человекочитаемый список таймлайнов
+	 */
+	public ArrayList<TimeLine> channelsToTimeLine(ArrayList<ArrayList<Note>> channels) {
+		int maxChannels = 0;
+		//сначала расчитываем максимальное число каналов
+		//т.к. временные этапы имеют переменное число нот различных каналов
+		for (ArrayList<Note> timeStage : channels) {
+			if (timeStage.size() > maxChannels) {
+				maxChannels = timeStage.size();
+			}
+		}
+		if (maxChannels > 0) {
+			//создаем все нужные таймлайны
+			ArrayList<TimeLine> ret = new ArrayList<>();
+			for (int i = 0; i < maxChannels; i++) {
+				ret.add(new TimeLine());
+			}
+			//и делим ноты (записываем в разные таймлайны
+			for (ArrayList<Note> timeStage : channels) {
+				for (int i = 0; i < timeStage.size(); i++) {
+					ret.get(i).addNote(timeStage.get(i));
+				}
+			}
+			return ret;
+		} else {
+			return new ArrayList<>();
 		}
 	}
 

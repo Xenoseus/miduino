@@ -1,5 +1,7 @@
 package com.xenoseus.miduino;
 
+import com.xenoseus.miduino.arduino.ArduinoTimeLine;
+import com.xenoseus.miduino.arduino.Frequencies;
 import com.xenoseus.miduino.notes.Note;
 import com.xenoseus.miduino.notes.TimeLine;
 import org.apache.log4j.Logger;
@@ -7,6 +9,7 @@ import org.apache.log4j.Logger;
 import javax.sound.midi.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Main {
 	private static final Logger log = Logger.getLogger(Main.class);
@@ -69,10 +72,22 @@ public class Main {
 					));
 				}
 			}
+			//разбираем только первый трек
 			break;
 		}
+		//сортируем и парсим линию на каналы
 		timeLine.sortLine();
-		timeLine.rawPrint();
-		timeLine.print();
+		ArrayList<TimeLine> parsedTimeLines = timeLine.channelsToTimeLine(timeLine.parseChannels());
+
+		//конструируем код для первого канала
+		StringBuilder finalCode = new StringBuilder();
+
+		Frequencies frequencies = new Frequencies(1);
+		finalCode.append(frequencies.getCode());
+
+		ArduinoTimeLine arduinoTimeLine = new ArduinoTimeLine(parsedTimeLines.get(0), "song");
+		finalCode.append(arduinoTimeLine.getCode());
+
+		log.info(finalCode.toString());
 	}
 }
