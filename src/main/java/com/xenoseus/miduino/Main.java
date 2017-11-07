@@ -14,20 +14,17 @@ import java.util.ArrayList;
 public class Main {
 	private static final Logger log = Logger.getLogger(Main.class);
 	private static final int NOTE_ON = 0x90;
+	private static final int NOTE_OFF = 0x80;
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		log.info("starting");
-		Sequence sequence = MidiSystem.getSequence(new File("test.mid"));
+		Sequence sequence = MidiSystem.getSequence(new File("pain.mid"));
 
+		int trackNumber = 1;
 		Note[] notes = new Note[300];
 		TimeLine timeLine = new TimeLine();
-		int trackNumber = 0;
-		for (Track track : sequence.getTracks()) {
-	        /*if (trackNumber == 0) {
-                trackNumber++;
-                continue;
-            }*/
-			trackNumber++;
+		Track track = sequence.getTracks()[trackNumber];
+
 			log.info("track " + trackNumber + "; size = " + track.size());
 
 			for (int i = 0; i < track.size(); i++) {
@@ -36,12 +33,12 @@ public class Main {
 				if (midiMessage instanceof ShortMessage) {
 					ShortMessage sm = (ShortMessage) midiMessage;
 					//log.info("Channel: " + sm.getChannel() + " ");
-					if (sm.getCommand() == NOTE_ON) {
+					if (sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF) {
 						int key = sm.getData1();
 						int octave = key / 12;
 						int note = key % 12;
 						int velocity = sm.getData2();
-						if (velocity != 0) {
+						if ((velocity != 0) && (sm.getCommand() != NOTE_OFF)) {
 							//note start
 							if (notes[key] != null) {
 								log.warn("notes[key] not null, but new started: " + notes[key]);
@@ -72,9 +69,7 @@ public class Main {
 					));
 				}
 			}
-			//разбираем только первый трек
-			break;
-		}
+
 		//сортируем и парсим линию на каналы
 		timeLine.sortLine();
 		ArrayList<TimeLine> parsedTimeLines = timeLine.channelsToTimeLine(timeLine.parseChannels());
@@ -85,7 +80,7 @@ public class Main {
 		Frequencies frequencies = new Frequencies(1);
 		finalCode.append(frequencies.getCode());
 
-		ArduinoTimeLine arduinoTimeLine = new ArduinoTimeLine(parsedTimeLines.get(0), "song");
+		ArduinoTimeLine arduinoTimeLine = new ArduinoTimeLine(parsedTimeLines.get(0), "song", 0.5f);
 		finalCode.append(arduinoTimeLine.getCode());
 
 		log.info(finalCode.toString());

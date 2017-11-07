@@ -12,10 +12,17 @@ import java.util.ArrayList;
 public class ArduinoTimeLine implements ICoder {
 	private final TimeLine timeLine;
 	private final String functionName;
+	private final float delayCoeff;
 
-	public ArduinoTimeLine(TimeLine timeLine, String functionName) {
+	/**
+	 * @param timeLine таймлайн для генерации
+	 * @param functionName название функции для сгенерированного кода
+	 * @param delayCoeff коэффициент длительности нот и задержек
+	 */
+	public ArduinoTimeLine(TimeLine timeLine, String functionName, float delayCoeff) {
 		this.timeLine = timeLine;
 		this.functionName = functionName;
+		this.delayCoeff = delayCoeff;
 	}
 
 	/**
@@ -24,7 +31,7 @@ public class ArduinoTimeLine implements ICoder {
 	 * @param duration длительность ноты
 	 */
 	private String getBeepCmd(String note, long duration) {
-		return String.format("\tbeep(%s, %d);", note, duration);
+		return String.format("\tbeep(%s, %d);", note, (long) (duration * delayCoeff));
 	}
 
 	/**
@@ -32,7 +39,7 @@ public class ArduinoTimeLine implements ICoder {
 	 * @param delay задержка
 	 */
 	private String getDelayCmd(long delay) {
-		return String.format("\tdelay(%d);", delay);
+		return String.format("\tdelay(%d);", (long) (delay * delayCoeff));
 	}
 
 	/**
