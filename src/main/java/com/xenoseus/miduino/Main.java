@@ -18,9 +18,9 @@ public class Main {
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		log.info("starting");
-		Sequence sequence = MidiSystem.getSequence(new File("pain.mid"));
+		Sequence sequence = MidiSystem.getSequence(new File("intro.mid"));
 
-		int trackNumber = 1;
+		int trackNumber = 9;
 		Note[] notes = new Note[300];
 		TimeLine timeLine = new TimeLine();
 		Track track = sequence.getTracks()[trackNumber];
@@ -77,10 +77,10 @@ public class Main {
 		//конструируем код для первого канала
 		StringBuilder finalCode = new StringBuilder();
 
-		Frequencies frequencies = new Frequencies(1);
+		Frequencies frequencies = new Frequencies(0);
 		finalCode.append(frequencies.getCode());
 
-		ArduinoTimeLine arduinoTimeLine = new ArduinoTimeLine(parsedTimeLines.get(0), "song", 0.5f);
+		ArduinoTimeLine arduinoTimeLine = new ArduinoTimeLine(parsedTimeLines.get(0), "song", 1.0f);
 		finalCode.append(arduinoTimeLine.getCode());
 
 		log.info(finalCode.toString());
