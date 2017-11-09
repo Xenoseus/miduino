@@ -26,11 +26,14 @@ public class Main {
 	private static final int NOTE_OFF = 0x80;
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
+		//входные параметры
+		int trackNumber = 0;
+		String fileName = "input.mid";
+
 		log.info("starting");
-		Sequence sequence = MidiSystem.getSequence(new File("mk.mid"));
+		Sequence sequence = MidiSystem.getSequence(new File(fileName));
 
 		float currentTimeCoefficient = 1.0f;
-		int trackNumber = 0;
 		Note[] notes = new Note[300];
 		TimeLine timeLine = new TimeLine();
 		Track track = sequence.getTracks()[trackNumber];
