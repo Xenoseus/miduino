@@ -10,17 +10,17 @@ import java.util.ArrayList;
  * Учитывает все пересечения таймлайнов и генерирует функцию
  */
 public class ArduinoMixedTimeLine implements ICoder {
-	private final ArrayList<TimeLine> timeLines;
+	private final ArrayList<ArrayList<Note>> channels;
 	private final String functionName;
 	private final float delayCoeff;
 
 	/**
-	 * @param timeLines таймлайн для генерации
+	 * @param channels список временных этапов с списком нот на них внутри
 	 * @param functionName название функции для сгенерированного кода
 	 * @param delayCoeff коэффициент длительности нот и задержек
 	 */
-	public ArduinoMixedTimeLine(ArrayList<TimeLine> timeLines, String functionName, float delayCoeff) {
-		this.timeLines = timeLines;
+	public ArduinoMixedTimeLine(ArrayList<ArrayList<Note>> channels, String functionName, float delayCoeff) {
+		this.channels = channels;
 		this.functionName = functionName;
 		this.delayCoeff = delayCoeff;
 	}
@@ -80,10 +80,12 @@ public class ArduinoMixedTimeLine implements ICoder {
 	 */
 	@Override
 	public String getCode() {
-		StringBuilder stringBuilder = new StringBuilder();
+		/*StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(String.format("\nvoid %s() {\n", this.functionName));
 		ArrayList<Note> notes = timeLines.getNotes();
 		long currentTick = 0;
+		//в теории можно сделать сколько угодно, но на 5+ каналах уже идут не самые полезные ноты
+		final int maxChannels = 4;
 		for (Note note : notes) {
 			long noteTick = note.getTick();
 			long noteDuration = note.getDuration();
@@ -94,7 +96,8 @@ public class ArduinoMixedTimeLine implements ICoder {
 			currentTick = noteTick + noteDuration;
 		}
 		stringBuilder.append("}");
-		return stringBuilder.toString();
+		return stringBuilder.toString();*/
+		return null;
 	}
 
 }
