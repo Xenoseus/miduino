@@ -27,16 +27,18 @@ public class Main {
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		//входные параметры
-		int trackNumber = 0;
 		String fileName = "mk.mid";
 
 		log.info("starting");
 		Sequence sequence = MidiSystem.getSequence(new File(fileName));
 
-		float currentTimeCoefficient = 1.0f;
-		Note[] notes = new Note[300];
-		TimeLine timeLine = new TimeLine();
-		//Track track = sequence.getTracks()[trackNumber];
+		ArrayList<TimeLine> timeLines = new ArrayList<>();
+
+		int trackNumber = 0;
+		for (Track track : sequence.getTracks()) {
+			float currentTimeCoefficient = 1.0f;
+			Note[] notes = new Note[300];
+			TimeLine timeLine = new TimeLine();
 
 			log.info("track " + trackNumber + "; size = " + track.size());
 
@@ -99,8 +101,11 @@ public class Main {
 					));
 				}
 			}
+			timeLines.add(timeLine);
+			trackNumber++;
+		}
 
-		//сортируем и парсим линию на каналы
+		/*//сортируем и парсим линию на каналы
 		timeLine.sortLine();
 		ArrayList<TimeLine> parsedTimeLines = timeLine.channelsToTimeLine(timeLine.parseChannels());
 
@@ -116,7 +121,7 @@ public class Main {
 				NoteUtils.BPMToTimeCoefficient(120));
 		finalCode.append(arduinoTimeLine.getCode());
 
-		log.info(finalCode.toString());
+		log.info(finalCode.toString());*/
 	}
 
 	/**
