@@ -28,7 +28,7 @@ public class Main {
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		//входные параметры
 		int trackNumber = 0;
-		String fileName = "input.mid";
+		String fileName = "mk.mid";
 
 		log.info("starting");
 		Sequence sequence = MidiSystem.getSequence(new File(fileName));
@@ -36,7 +36,7 @@ public class Main {
 		float currentTimeCoefficient = 1.0f;
 		Note[] notes = new Note[300];
 		TimeLine timeLine = new TimeLine();
-		Track track = sequence.getTracks()[trackNumber];
+		//Track track = sequence.getTracks()[trackNumber];
 
 			log.info("track " + trackNumber + "; size = " + track.size());
 
