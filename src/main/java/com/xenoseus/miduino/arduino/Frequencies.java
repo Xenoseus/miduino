@@ -2,10 +2,12 @@ package com.xenoseus.miduino.arduino;
 
 /**
  * Генератор дефайнов с частотами
+ * update 24.11.17: генератор интервалов переключений
  */
 public class Frequencies implements ICoder {
 	private static final String[] NOTES = {"C", "CS", "D", "DS", "E", "F", "FS", "G", "GS", "A", "AS", "B"};
 	private static final int OCTAVES_NUM = 11;
+	private static final int THRESHOLD = 5;
 	/**
 	 * Массив частот. Внешний - массив нот,
 	 * внутренние - массивы частот этих нот по октавам
@@ -24,19 +26,35 @@ public class Frequencies implements ICoder {
 			{29.14, 58.26, 116.54, 233.08, 466.16, 932.32, 1864.6, 3729.2, 7458.4, 14916.8, 29833.6},
 			{30.87, 61.74, 123.48, 246.96, 493.88, 987.75, 1975.5, 3951, 7902, 15804, 31608}
 	};
-	private int octaveDecreasing;
-
 	/**
-	 * @param octaveDecreasing уменьшение октавы. например, при 1 ноты D5 превратятся в D4
+	 * Массив периодов. Обратен массиву частот нот
 	 */
-	public Frequencies(int octaveDecreasing) {
-		this.octaveDecreasing = octaveDecreasing;
+	private static long[][] intervals;
+
+	public Frequencies() {
 		for (int i = 0; i < frequencies.length; i++) {
 			double[] arr = frequencies[i];
 			for (int j = 0; j < arr.length; j++) {
 				arr[j] = Math.round(arr[j]);
 			}
 		}
+		intervals = new long[frequencies.length][frequencies[0].length];
+		for (int i = 0; i < frequencies.length; i++) {
+			long[] intervalArr = intervals[i];
+			double[] freqArr = frequencies[i];
+			for (int j = 0; j < freqArr.length; j++) {
+				intervalArr[j] = THRESHOLD * (Math.round(((long) (1000000 / Math.round(freqArr[j]))) / THRESHOLD));
+			}
+		}
+	}
+
+	/**
+	 * Получить период ноты
+	 * @param noteNum нота
+	 * @param octave октава
+	 */
+	public static long getNoteInterval(int noteNum, int octave) {
+		return intervals[noteNum][octave];
 	}
 
 	/**
@@ -49,10 +67,10 @@ public class Frequencies implements ICoder {
 	@Override
 	public String getCode() {
 		StringBuilder stringBuilder = new StringBuilder();
-		for (int octave = octaveDecreasing; octave < OCTAVES_NUM; octave++) {
+		for (int octave = 0; octave < OCTAVES_NUM; octave++) {
 			for (int noteNum = 0; noteNum < NOTES.length; noteNum++) {
 				stringBuilder
-						.append(getNoteDefine(noteNum, octave, frequencies[noteNum][octave - octaveDecreasing]))
+						.append(getNoteDefine(noteNum, octave, intervals[noteNum][octave] / THRESHOLD))
 						.append("\n");
 			}
 		}

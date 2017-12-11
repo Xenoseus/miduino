@@ -28,12 +28,15 @@ public class Main {
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		//входные параметры
-		String fileName = "Unity.mid";
-		int[] tracksToParse = new int[] {0, 2};
+		String fileName = "test.mid";
+		int[] tracksToParse = new int[] {0};
 
 
 		log.info("starting");
 		Sequence sequence = MidiSystem.getSequence(new File(fileName));
+
+		int minVelocity = Integer.MAX_VALUE;
+		int maxVelocity = Integer.MIN_VALUE;
 
 		ArrayList<TimeLine> timeLines = new ArrayList<>();
 
@@ -64,6 +67,8 @@ public class Main {
 							int octave = key / 12;
 							int note = key % 12;
 							int velocity = sm.getData2();
+							if (velocity < minVelocity) minVelocity = velocity;
+							if (velocity > maxVelocity) maxVelocity = velocity;
 							if ((velocity != 0) && (sm.getCommand() != NOTE_OFF)) {
 								//note start
 								if (notes[key] != null) {
@@ -119,10 +124,11 @@ public class Main {
 		}
 
 		RawTimeLine rawTimeLine = RawTimeLine.fromTimeLines(timeLines);
+		rawTimeLine.adjustVelocity(minVelocity, maxVelocity);
 
 		StringBuilder finalCode = new StringBuilder();
 
-		Frequencies frequencies = new Frequencies(0);
+		Frequencies frequencies = new Frequencies();
 		finalCode.append(frequencies.getCode());
 
 		finalCode.append(rawTimeLine.getCode());

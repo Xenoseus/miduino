@@ -1,13 +1,12 @@
 package com.xenoseus.miduino.raw;
 
+import com.xenoseus.miduino.MathUtils;
+import com.xenoseus.miduino.arduino.Frequencies;
 import com.xenoseus.miduino.arduino.ICoder;
 import com.xenoseus.miduino.notes.Note;
 import com.xenoseus.miduino.notes.TimeLine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Линия времени для сырых событий (RawEvent)
@@ -32,8 +31,9 @@ public class RawTimeLine implements ICoder {
 				int key = note.getKey();
 				long tick = note.getTick();
 				long tick2 = tick + note.getDuration();
-				ret.addEvent(tick, new RawEvent(new RawEventTask(RawEventTask.TASK_ADD_NOTE, key)));
-				ret.addEvent(tick2, new RawEvent(new RawEventTask(RawEventTask.TASK_REMOVE_NOTE, key)));
+				int velocity = note.getVelocity();
+				ret.addEvent(tick, new RawEvent(new RawEventTask(RawEventTask.TASK_ADD_NOTE, key, velocity)));
+				ret.addEvent(tick2, new RawEvent(new RawEventTask(RawEventTask.TASK_REMOVE_NOTE, key, 0)));
 			}
 		}
 		return ret;
@@ -55,6 +55,7 @@ public class RawTimeLine implements ICoder {
 	}
 
 	//====================CODER=======================
+	private Set<Long> usedNoteIntervals = new LinkedHashSet<>();
 
 	/**
 	 * Получить строку для команды beep()
@@ -127,6 +128,7 @@ public class RawTimeLine implements ICoder {
 		int val = key.intValue();
 		int octave = val / 12;
 		int note = val % 12;
+		usedNoteIntervals.add(Frequencies.getNoteInterval(note, octave));
 		return String.format("%s%d",
 				NOTES[note],
 				octave
@@ -181,6 +183,19 @@ public class RawTimeLine implements ICoder {
 	}
 
 	/**
+	 * Получить базовый интервал для всех нот (наименьшее общее кратное)
+	 */
+	public long getBaseInterval() {
+		long[] vals = new long[usedNoteIntervals.size()];
+		int i = 0;
+		for (Long longVal : usedNoteIntervals) {
+			vals[i] = longVal.longValue();
+			i++;
+		}
+		return MathUtils.greatestCommonDivisor(vals);
+	}
+
+	/**
 	 * Получить код мелодии таймлайна
 	 */
 	@Override
@@ -208,8 +223,27 @@ public class RawTimeLine implements ICoder {
 		}
 		//для того, чтобы закрыть последний элемент верно (мы пишем ноты на следующем событии, чтобы знать длительность)
 		appendCommand(stringBuilder, currentTick, currentTick, currentNotes);
-		stringBuilder.append("}");
+		stringBuilder.append("}\n");
+		stringBuilder.append("#define BASE_INTERVAL ").append(getBaseInterval());
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * Округлить все значения громкостей нот до минимального и максимального
+	 * @param minVelocity минимальное
+	 * @param maxVelocity максимальное
+	 */
+	public void adjustVelocity(int minVelocity, int maxVelocity) {
+		int midVelocity = (minVelocity + maxVelocity) / 2;
+		Set<Map.Entry<Long, RawEvent>> entrySet = events.entrySet();
+		for (Map.Entry<Long, RawEvent> entry : entrySet) {
+			RawEvent event = entry.getValue();
+			List<RawEventTask> tasks = event.getTasks();
+			for (RawEventTask task : tasks) {
+				if (task.getType() == RawEventTask.TASK_ADD_NOTE) {
+					task.setVelocity((task.getVelocity() >= midVelocity) ? 1 : 0);
+				}
+			}
+		}
+	}
 }
