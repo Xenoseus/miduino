@@ -62,8 +62,9 @@ public class RawTimeLine implements ICoder {
 	 * @param note название ноты
 	 * @param duration длительность ноты
 	 */
-	private String getBeepCmd(String note, long duration) {
-		return String.format("\tbeep(%s, %d);", note, (long) (duration));
+	private String getBeepCmd(String note, long duration, int velocity) {
+		//velocity = bit mask. when bit = 1, sound is bigger. when bit = 0, sound is smaller
+		return String.format("\tbeep(%s, %d, %d);", note, duration, velocity);
 	}
 
 	/**
@@ -72,8 +73,8 @@ public class RawTimeLine implements ICoder {
 	 * @param note2 название второй ноты
 	 * @param duration длительность ноты
 	 */
-	private String getBeep2Cmd(String note, String note2, long duration) {
-		return String.format("\tbeep2(%s, %s, %d);", note, note2, (long) (duration));
+	private String getBeep2Cmd(String note, String note2, long duration, int velocity) {
+		return String.format("\tbeep2(%s, %s, %d, %d);", note, note2, duration, velocity);
 	}
 
 	/**
@@ -83,34 +84,11 @@ public class RawTimeLine implements ICoder {
 	 * @param note3 название третье йноты
 	 * @param duration длительность ноты
 	 */
-	private String getBeep3Cmd(String note, String note2, String note3, long duration) {
-		return String.format("\tbeep3(%s, %s, %s, %d);", note, note2, note3, (long) (duration));
+	private String getBeep3Cmd(String note, String note2, String note3, long duration, int velocity) {
+		return String.format("\tbeep3(%s, %s, %s, %d, %d);", note, note2, note3, duration, velocity);
 	}
 
-	/**
-	 * Получить строку для команды beep4()
-	 * @param note название ноты
-	 * @param note2 название второй ноты
-	 * @param note3 название третьей ноты
-	 * @param note4 название четвертой ноты
-	 * @param duration длительность ноты
-	 */
-	private String getBeep4Cmd(String note, String note2, String note3, String note4, long duration) {
-		return String.format("\tbeep4(%s, %s, %s, %s, %d);", note, note2, note3, note4, (long) (duration));
-	}
-
-	/**
-	 * Получить строку для команды beep5()
-	 * @param note название ноты
-	 * @param note2 название второй ноты
-	 * @param note3 название третьей ноты
-	 * @param note4 название четвертой ноты
-	 * @param note5 название пятой ноты
-	 * @param duration длительность ноты
-	 */
-	private String getBeep5Cmd(String note, String note2, String note3, String note4, String note5, long duration) {
-		return String.format("\tbeep5(%s, %s, %s, %s, %s, %d);", note, note2, note3, note4, note5, (long) (duration));
-	}
+	//sorry, but arduino can't correctly play 4 or 5 sound at same time
 
 	/**
 	 * Получить строчку для команды delay()
@@ -142,42 +120,44 @@ public class RawTimeLine implements ICoder {
 	 * @param currentTick тик предыдущего события (добавляем команды прошлого события после того, как достигли нового)
 	 * @param currentNotes текущие включенные ноты (прошлого события)
 	 */
-	private void appendCommand(StringBuilder stringBuilder, long eventTick, long currentTick, ArrayList<Integer> currentNotes) {
+	private void appendCommand(StringBuilder stringBuilder, long eventTick, long currentTick,
+	                           ArrayList<Integer> currentNotes, int[] currentVelocities) {
 		int prevNotesSize = currentNotes.size();
 		if (prevNotesSize == 0) {
 			stringBuilder.append(getDelayCmd(eventTick - currentTick)).append("\n");
 		} else {
 			if (prevNotesSize == 1) {
-				stringBuilder.append(getBeepCmd(getNoteName(currentNotes.get(0)), eventTick - currentTick)).append("\n");
+				int velocity = 0;
+				if (currentVelocities[currentNotes.get(0)] == 1) velocity += 1;
+				stringBuilder.append(getBeepCmd(getNoteName(currentNotes.get(0)), eventTick - currentTick, velocity)).append("\n");
 			} else if (prevNotesSize == 2) {
+				int velocity = 0;
+				if (currentVelocities[currentNotes.get(0)] == 1) velocity += 1;
+				if (currentVelocities[currentNotes.get(1)] == 1) velocity += 2;
 				stringBuilder.append(getBeep2Cmd(getNoteName(currentNotes.get(0)),
 						getNoteName(currentNotes.get(1)),
-						eventTick - currentTick)).append("\n");
+						eventTick - currentTick,
+						velocity)).append("\n");
 			} else if (prevNotesSize == 3) {
+				int velocity = 0;
+				if (currentVelocities[currentNotes.get(0)] == 1) velocity += 1;
+				if (currentVelocities[currentNotes.get(1)] == 1) velocity += 2;
+				if (currentVelocities[currentNotes.get(2)] == 1) velocity += 4;
 				stringBuilder.append(getBeep3Cmd(getNoteName(currentNotes.get(0)),
 						getNoteName(currentNotes.get(1)),
 						getNoteName(currentNotes.get(2)),
-						eventTick - currentTick)).append("\n");
-			} else if (prevNotesSize == 4) {
-				stringBuilder.append(getBeep4Cmd(getNoteName(currentNotes.get(0)),
-						getNoteName(currentNotes.get(1)),
-						getNoteName(currentNotes.get(2)),
-						getNoteName(currentNotes.get(3)),
-						eventTick - currentTick)).append("\n");
-			} else if (prevNotesSize == 5) {
-				stringBuilder.append(getBeep5Cmd(getNoteName(currentNotes.get(0)),
-						getNoteName(currentNotes.get(1)),
-						getNoteName(currentNotes.get(2)),
-						getNoteName(currentNotes.get(3)),
-						getNoteName(currentNotes.get(4)),
-						eventTick - currentTick)).append("\n");
+						eventTick - currentTick,
+						velocity)).append("\n");
 			} else {
-				stringBuilder.append(getBeep5Cmd(getNoteName(currentNotes.get(0)),
+				int velocity = 0;
+				if (currentVelocities[currentNotes.get(0)] == 1) velocity += 1;
+				if (currentVelocities[currentNotes.get(1)] == 1) velocity += 2;
+				if (currentVelocities[currentNotes.get(2)] == 1) velocity += 4;
+				stringBuilder.append(getBeep3Cmd(getNoteName(currentNotes.get(0)),
 						getNoteName(currentNotes.get(1)),
 						getNoteName(currentNotes.get(2)),
-						getNoteName(currentNotes.get(3)),
-						getNoteName(currentNotes.get(4)),
-						eventTick - currentTick)).append("\n");
+						eventTick - currentTick,
+						velocity)).append("\n");
 			}
 		}
 	}
@@ -205,24 +185,27 @@ public class RawTimeLine implements ICoder {
 
 		//список включенных нот на данном этапе
 		ArrayList<Integer> currentNotes = new ArrayList<>();
+		//список громкостей нот на данном этапе
+		int[] currentVelocities = new int[300];
 		//текущий тик (с прошлого события)
 		long currentTick = 0;
 		for (Map.Entry<Long, RawEvent> entry : events.entrySet()) {
 			long eventTick = entry.getKey().longValue();
-			appendCommand(stringBuilder, eventTick, currentTick, currentNotes);
+			appendCommand(stringBuilder, eventTick, currentTick, currentNotes, currentVelocities);
 			currentTick = eventTick;
 			RawEvent event = entry.getValue();
 			for (RawEventTask task : event.getTasks()) {
 				int type = task.getType();
 				if (type == RawEventTask.TASK_ADD_NOTE) {
 					currentNotes.add(Integer.valueOf(task.getNote()));
+					currentVelocities[task.getNote()] = task.getVelocity();
 				} else if (type == RawEventTask.TASK_REMOVE_NOTE) {
 					currentNotes.remove(Integer.valueOf(task.getNote()));
 				}
 			}
 		}
 		//для того, чтобы закрыть последний элемент верно (мы пишем ноты на следующем событии, чтобы знать длительность)
-		appendCommand(stringBuilder, currentTick, currentTick, currentNotes);
+		appendCommand(stringBuilder, currentTick, currentTick, currentNotes, currentVelocities);
 		stringBuilder.append("}\n");
 		stringBuilder.append("#define BASE_INTERVAL ").append(getBaseInterval());
 		return stringBuilder.toString();
